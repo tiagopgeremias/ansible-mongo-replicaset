@@ -1,0 +1,11 @@
+db = db.getSiblingDB('admin');
+db.createUser({
+  user: "{{ user_admin }}", 
+  pwd:"{{ pass_admin }}",
+  roles: [
+    { role: "userAdminAnyDatabase", db: "admin" },
+    { role: "dbAdminAnyDatabase", db: "admin" },
+    { role: "readWriteAnyDatabase", db:"admin" },
+    { role: "clusterAdmin",  db: "admin" }
+  ]
+});

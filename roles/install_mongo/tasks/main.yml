@@ -1,0 +1,40 @@
+- name: Disable Selinux
+  template:
+    src: selinux
+    dest: /etc/selinux/config
+    owner: root
+    group: root
+    mode: '0644'
+  register: disable_selinux
+    
+
+- name: Reboot system
+  shell: sleep 2 && shutdown -r now
+  async: 5
+  poll: 0
+  when: disable_selinux.changed
+
+- name: Reestablishing the connection with the hosts
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: disable_selinux.changed
+
+- name: Configure Repository
+  template:
+    src: mongodb-org-4.2.repo
+    dest: /etc/yum.repos.d/mongodb-org-4.2.repo
+    owner: root
+    group: root
+
+# - name: Update System
+#   yum:
+#     name: '*'
+#     state: latest
+
+- name: Install Mongodb
+  yum:
+    name: mongodb-org
+    state: present

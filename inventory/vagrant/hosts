@@ -1,0 +1,13 @@
+[all:vars]
+ansible_user=vagrant
+
+[mongo_cluster:children]
+mongo_master
+mongo_slave
+
+[mongo_master]
+192.168.41.20
+
+[mongo_slave]
+192.168.41.21
+192.168.41.22

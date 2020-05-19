@@ -1,0 +1,5 @@
+- hosts: mongo_cluster
+  become: yes
+  roles:
+    - install_mongo
+    - configure_cluster

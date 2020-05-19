@@ -1,0 +1,47 @@
+- name: Configure MongoDB
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Cretate directory Data Mongo
+  file:
+    name: /data
+    state: directory
+    owner: mongod
+    group: mongod
+
+- name: Copy SSLKey
+  copy:
+    src: "{{ sslkey }}"
+    dest: /data/mongossl.key
+    owner: mongod
+    group: mongod
+    mode: '0400'
+
+- name: Systemd enable Mongodb
+  systemd:
+    name: mongod
+    enabled: yes
+    state: started
+
+- name: Create Master Node
+  shell: mongo --eval "rs.initiate()"
+  when: inventory_hostname in groups['mongo_master']
+
+- name: Script create user admin
+  template:
+    src: create_user.js.j2
+    dest: /tmp/create_user.js
+
+- name: Create MongoDB user admin
+  shell: mongo /tmp/create_user.js
+  when: inventory_hostname in groups['mongo_master']
+
+
+- name: Add Slaves
+  shell: mongo -u "{{ user_admin }}" -p "{{ pass_admin }}" --eval "rs.add('{{ item }}')"
+  loop: "{{ groups['mongo_slave'] }}"
+  when: inventory_hostname in groups['mongo_master']
